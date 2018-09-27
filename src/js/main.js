@@ -1,22 +1,92 @@
-// This is the "use strict";
+let display    = null,
+    first_num  = null,
+    second_num = null,
+    sign       = null,
+    keyStack   = [];
 
-// This is the JavaScript file we edit
-var display = document.getElementById('display');
-var first_num = null;
-var second_num = null;
-var sign = null;
+// Calculation state describes the state of the calculation
+// currently being performed.
+const READY_FIRST  = 1,
+      READY_SECOND = 2,
+      SOLVED       = 3,
+      ERROR        = 4;
+let calc_state     = READY_FIRST;
 
-const READY_FIRST = 1;
-const READY_SECOND = 2;
-const SOLVED = 3;
-const ERROR = 4;
-var calc_state = READY_FIRST;
+// const READY_FOR_ENTRY   = 1;
+// const ENTRY_IN_PROGRESS = 2;
+// let display_state       = READY_FOR_ENTRY;
 
-const READY_FOR_ENTRY = 1;
-const ENTRY_IN_PROGRESS = 2;
-var display_state = READY_FOR_ENTRY;
+document.onreadystatechange = function() {
+    if (document.readyState == 'interactive') {
+        init();
+    }
+}
 
-function input(digit) {
+function init() {
+    // Grab the display
+    display = document.getElementById('display');
+    // Add event listener to each key
+    let buttons = document.getElementsByClassName('key');
+    for (let button of buttons) {
+        button.addEventListener('click', input);
+    }
+}
+
+function input(event) {
+    let key = event.target.innerHTML;
+
+    // Route to the function appropriate for this key
+    if (isNumeric(key))       enterNumber(key);
+    else if (isOperator(key)) enterOperator(key);
+    else if (isEquals(key))   equals();
+    else if (isClear(key))    clear();
+    else if (isDecimal(key))  enterDecimal(key);
+
+    // Add this key to the history
+    keyStack.push(key);
+}
+
+function isNumeric(key) {
+    return (0 <= key && key <= 9);
+}
+
+function isOperator(key) {
+    return (key == '+' || key == '-' || key == 'x' || key == '/');
+}
+
+function isEquals(key) {
+    return (key == '=');
+}
+
+function isClear(key) {
+    return (key == 'C');
+}
+
+function isDecimal(key) {
+    return (key == '.');
+}
+
+function clear() {
+    display.value = '0';
+}
+
+function enterDecimal(key) {
+
+}
+
+function enterNumber(key) {
+
+}
+
+
+function equals() {
+
+}
+
+
+
+
+function old_input(digit) {
   if (display_state == ENTRY_IN_PROGRESS && display.innerHTML.length > 10) {
     return;
   }
@@ -115,9 +185,9 @@ function calculate() {
   debug();
 
 
-  var solution;
-  var temp_first = first_num.toString();
-  var temp_second = second_num.toString();
+  let solution;
+  let temp_first = first_num.toString();
+  let temp_second = second_num.toString();
 
   let first_dec_places = 0;
   let second_dec_places = 0;
@@ -127,7 +197,7 @@ function calculate() {
   if (temp_second.search(/\./) > -1) {
     second_dec_places = temp_second.substring(temp_second.search(/\./) + 1).length;
   }
-  var dec_places = 0;
+  let dec_places = 0;
 
   if (first_dec_places > second_dec_places) {
     dec_places = first_dec_places;

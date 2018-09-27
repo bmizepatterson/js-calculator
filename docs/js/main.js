@@ -1,21 +1,95 @@
 "use strict";
 
-// This is the "use strict";
-// This is the JavaScript file we edit
-var display = document.getElementById('display');
-var first_num = null;
-var second_num = null;
-var sign = null;
-var READY_FIRST = 1;
-var READY_SECOND = 2;
-var SOLVED = 3;
-var ERROR = 4;
-var calc_state = READY_FIRST;
-var READY_FOR_ENTRY = 1;
-var ENTRY_IN_PROGRESS = 2;
-var display_state = READY_FOR_ENTRY;
+var display = null,
+    first_num = null,
+    second_num = null,
+    sign = null,
+    keyStack = []; // Calculation state describes the state of the calculation
+// currently being performed.
 
-function input(digit) {
+var READY_FIRST = 1,
+    READY_SECOND = 2,
+    SOLVED = 3,
+    ERROR = 4;
+var calc_state = READY_FIRST; // const READY_FOR_ENTRY   = 1;
+// const ENTRY_IN_PROGRESS = 2;
+// let display_state       = READY_FOR_ENTRY;
+
+document.onreadystatechange = function () {
+  if (document.readyState == 'interactive') {
+    init();
+  }
+};
+
+function init() {
+  // Grab the display
+  display = document.getElementById('display'); // Add event listener to each key
+
+  var buttons = document.getElementsByClassName('key');
+  var _iteratorNormalCompletion = true;
+  var _didIteratorError = false;
+  var _iteratorError = undefined;
+
+  try {
+    for (var _iterator = buttons[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+      var button = _step.value;
+      button.addEventListener('click', input);
+    }
+  } catch (err) {
+    _didIteratorError = true;
+    _iteratorError = err;
+  } finally {
+    try {
+      if (!_iteratorNormalCompletion && _iterator.return != null) {
+        _iterator.return();
+      }
+    } finally {
+      if (_didIteratorError) {
+        throw _iteratorError;
+      }
+    }
+  }
+}
+
+function input(event) {
+  var key = event.target.innerHTML; // Route to the function appropriate for this key
+
+  if (isNumeric(key)) enterNumber(key);else if (isOperator(key)) enterOperator(key);else if (isEquals(key)) equals();else if (isClear(key)) clear();else if (isDecimal(key)) enterDecimal(key); // Add this key to the history
+
+  keyStack.push(key);
+}
+
+function isNumeric(key) {
+  return 0 <= key && key <= 9;
+}
+
+function isOperator(key) {
+  return key == '+' || key == '-' || key == 'x' || key == '/';
+}
+
+function isEquals(key) {
+  return key == '=';
+}
+
+function isClear(key) {
+  return key == 'C';
+}
+
+function isDecimal(key) {
+  return key == '.';
+}
+
+function clear() {
+  display.value = '0';
+}
+
+function enterDecimal(key) {}
+
+function enterNumber(key) {}
+
+function equals() {}
+
+function old_input(digit) {
   if (display_state == ENTRY_IN_PROGRESS && display.innerHTML.length > 10) {
     return;
   }
