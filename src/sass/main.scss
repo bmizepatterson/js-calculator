@@ -1,38 +1,54 @@
-// This is the Sass file we edit
+// Colors
+$function-button: #eee; // #5FB9FF;
+$display-bg: #333;
 
-// Variables for Bootstrap that we want to change
-$body-bg: #DDD;
-$function-button: #5FB9FF;
+body {
+    margin:0;
+    padding:0;
+    font-family: Verdana, sans-serif;
+}
 
-
-// Import bootstrap
-@import "../../node_modules/bootstrap/scss/bootstrap";
-
-#calc-container {
-    width: 50%;
-    margin:auto;
+.container {
+    width: 300px;
+    margin: 20px auto;
     border: 1px solid black;
-    min-width:20em;
-    background-color: #FFF;
-    .row {
-        margin:0;
-    }
-    p {
-        text-align:center;
-        border: 1px solid black;
-        margin: 0;
-        padding: 0;
-        height:100px;
-        line-height: 100px;
-        font-size: 24px;
-        cursor: pointer;
-    }
-    #display {
-        cursor: default;
-        font-family: monospace;
-    }
-    .function-button {
-        background-color: $function-button;
-        color: $white;
-    }
+}
+
+.row {
+    padding: 2px;
+    perspective: 500px;
+}
+
+.key {
+    width: 71px;
+    height: 71px;
+    border: 0;
+    font-size: 24px;
+    background-color: lightgray;
+    margin-right: -2px;
+}
+
+.key:active {
+    transform: translateZ(-5px);
+}
+
+.key:focus {
+    outline: 0;
+}
+
+.func {
+    background-color: $function-button;
+    border: 1px solid darkgray;
+}
+
+#display {
+    font-family: monospace;
+    width: 100%;
+    font-size: 48px;
+    background: none;
+    border: 0;
+    text-align: right;
+    padding: 0;
+    background-color: $display-bg;
+    color: #fff;
 }

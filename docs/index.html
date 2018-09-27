@@ -1,61 +1,49 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <!-- Required meta tags -->
+<head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-
-    <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
-
-    <!-- Our styling, above what Bootstrap provides -->
     <link rel="stylesheet" href="css/main.css">
+    <title>JavaScript Calculator</title>
+</head>
+<body>
 
-    <title></title>
-  </head>
-  <body>
-
-    <div id="calc-container" class="mt-5">
+    <div class="container">
         <div class="row">
-            <p class="col text-right pr-3" id="display">0</p>
+            <input id="display" value="0" readonly disabled>
         </div>
         <div class="row">
-            <p id='C' class="col-9" onclick="clear_display()" onmousedown="highlight('C')" onmouseup="unhighlight('C')">C</p>
-            <p id="/" class="col-3 function-button" onclick="operator('/')" onmousedown="highlight('/')" onmouseup="unhighlight('/', '#5FB9FF')">/</p>
+            <button class="key">C</button>
+            <button class="key">&nbsp;</button>
+            <button class="key">&nbsp;</button>
+            <button class="key func">/</button>
         </div>
         <div class="row">
-            <p id="7" class="col-3" onclick="input(7)" onmousedown="highlight('7')" onmouseup="unhighlight('7')">7</p>
-            <p id="8" class="col-3" onclick="input(8)" onmousedown="highlight('8')" onmouseup="unhighlight('8')">8</p>
-            <p id="9" class="col-3" onclick="input(9)" onmousedown="highlight('9')" onmouseup="unhighlight('9')">9</p>
-            <p id="x" class="col-3 function-button" onclick="operator('x')" onmousedown="highlight('x')" onmouseup="unhighlight('x', '#5FB9FF')">x</p>
+            <button class="key">7</button>
+            <button class="key">8</button>
+            <button class="key">9</button>
+            <button class="key func">x</button>
         </div>
         <div class="row">
-            <p id="4" class="col-3" onclick="input(4)" onmousedown="highlight('4')" onmouseup="unhighlight('4')">4</p>
-            <p id="5" class="col-3" onclick="input(5)" onmousedown="highlight('5')" onmouseup="unhighlight('5')">5</p>
-            <p id="6" class="col-3" onclick="input(6)" onmousedown="highlight('6')" onmouseup="unhighlight('6')">6</p>
-            <p id="-" class="col-3 function-button" onclick="operator('-')" onmousedown="highlight('-')" onmouseup="unhighlight('-', '#5FB9FF')">-</p>
+            <button class="key">4</button>
+            <button class="key">5</button>
+            <button class="key">6</button>
+            <button class="key func">-</button>
         </div>
         <div class="row">
-            <p id="1" class="col-3" onclick="input(1)" onmousedown="highlight('1')" onmouseup="unhighlight('1')">1</p>
-            <p id="2" class="col-3" onclick="input(2)" onmousedown="highlight('2')" onmouseup="unhighlight('2')">2</p>
-            <p id="3" class="col-3" onclick="input(3)" onmousedown="highlight('3')" onmouseup="unhighlight('3')">3</p>
-            <p id="+" class="col-3 function-button" onclick="operator('+')" onmousedown="highlight('+')" onmouseup="unhighlight('+', '#5FB9FF')">+</p>
+            <button class="key">1</button>
+            <button class="key">2</button>
+            <button class="key">3</button>
+            <button class="key func">+</button>
         </div>
         <div class="row">
-            <p id="0" class="col-6" onclick="input(0)" onmousedown="highlight('0')" onmouseup="unhighlight('0')">0</p>
-            <p id="." class="col-3" onclick="input('.')" onmousedown="highlight('.')" onmouseup="unhighlight('.')">.</p>
-            <p id="=" class="col-3 function-button" onclick="calculate()" onmousedown="highlight('=')" onmouseup="unhighlight('=', '#5FB9FF')">=</p>
+            <button class="key">0</button>
+            <button class="key">&nbsp;</button>
+            <button class="key">.</button>
+            <button class="key func">=</button>
         </div>
     </div>
-    
-
-
-    <!-- Optional JavaScript -->
-    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
-    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
 
     <script src="js/main.js"></script>
-  </body>
+</body>
 </html>
