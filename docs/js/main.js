@@ -1,10 +1,20 @@
 "use strict";
 
-var display = null,
-    first_num = null,
-    second_num = null,
-    sign = null,
-    keyStack = []; // Calculation state describes the state of the calculation
+/**
+ * GLOBALS
+ */
+// The "display" of the calculator -- an HTML input element
+var display = null; // The first value of the current calculation
+
+var first_num = null; // The second value of the current calculation
+
+var second_num = null; // The operation currently being performed
+
+var operator = null; // A history of every key pressed
+
+var keyStack = []; // The maximum number of digits (inc. decimal point) that the display can hold
+
+var maxDigits = 9; // Calculation state describes the state of the calculation
 // currently being performed.
 
 var READY_FIRST = 1,
@@ -54,7 +64,7 @@ function init() {
 function input(event) {
   var key = event.target.innerHTML; // Route to the function appropriate for this key
 
-  if (isNumeric(key)) enterNumber(key);else if (isOperator(key)) enterOperator(key);else if (isEquals(key)) equals();else if (isClear(key)) clear();else if (isDecimal(key)) enterDecimal(key); // Add this key to the history
+  if (isNumeric(key)) enterNumber(key);else if (isOperator(key)) enterOperator(key);else if (isEquals(key)) equals();else if (isClear(key)) clear();else if (isDecimal(key)) enterDecimal(); // Add this key to the history
 
   keyStack.push(key);
 }
@@ -80,55 +90,54 @@ function isDecimal(key) {
 }
 
 function clear() {
+  // Reset display and global variables
   display.value = '0';
+  first_num = null;
+  operator = null;
+  second_num = null;
+  keyStack = [];
 }
 
-function enterDecimal(key) {}
+function enterDecimal() {
+  // If the display is full, then don't add any more digits
+  if (displayIsFull()) return; // Enter a decimal only if the display doesn't already
+  // contain a decimal.
 
-function enterNumber(key) {}
+  if (display.value.search(/\./) === -1) {
+    display.value += '.';
+  }
+}
+
+function enterNumber(key) {
+  // If the display is full, then don't add any more digits
+  if (displayIsFull()) return;
+
+  if (readyForInput()) {
+    // If the display is ready for a new number, then this
+    // key should replace current value of the display.
+    display.value = key;
+  } else {
+    // If we're in the middle of entering a number, then
+    // append this key to the value of the display.
+    display.value += key;
+  }
+}
+
+function readyForInput() {
+  // Is the display ready for a new number?
+  // The display shows a single 0 upon initial load and after
+  // clear is pressed. If the user last clicked an operator
+  // key, then they're ready to enter a new number.
+  return display.value == '0' || isOperator(keyStack[-1]);
+}
+
+function displayIsFull() {
+  return display.value.length >= maxDigits;
+}
+
+function enterOperator(key) {}
 
 function equals() {}
-
-function old_input(digit) {
-  if (display_state == ENTRY_IN_PROGRESS && display.innerHTML.length > 10) {
-    return;
-  }
-
-  if (digit === '.') {
-    if (display_state == READY_FOR_ENTRY) {
-      display.innerHTML = "0" + digit;
-      display_state = ENTRY_IN_PROGRESS;
-      return;
-    }
-
-    if (display.innerHTML.search(/\./) >= 0) {
-      return;
-    }
-  }
-
-  if (display_state == READY_FOR_ENTRY) {
-    // After typing one digit, switch display_state so future inputs
-    // are appended to the current entry.
-    display.innerHTML = digit;
-    display_state = ENTRY_IN_PROGRESS;
-  } else if (display_state == ENTRY_IN_PROGRESS) {
-    display.innerHTML += digit;
-  }
-}
-
-function clear_display() {
-  display.innerHTML = '0';
-  calc_state = READY_FIRST;
-  display_state = READY_FOR_ENTRY;
-  first_num = second_num = null;
-  sign = null;
-  document.getElementById('/').style.backgroundColor = '#5FB9FF';
-  document.getElementById('x').style.backgroundColor = '#5FB9FF';
-  document.getElementById('-').style.backgroundColor = '#5FB9FF';
-  document.getElementById('+').style.backgroundColor = '#5FB9FF';
-  console.log('END OF CLEAR_DISPLAY()');
-  debug();
-}
 
 function operator(current_sign) {
   console.log('BEGINNING OF OPERATOR()');
