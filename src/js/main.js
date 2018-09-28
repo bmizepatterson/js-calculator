@@ -91,12 +91,11 @@ function clear() {
 }
 
 function enterDecimal() {
-    // If the display is full, then don't add any more digits
-    if (displayIsFull()) return;
-
-    // Enter a decimal only if the display doesn't already
-    // contain a decimal.
-    if (display.value.search(/\./) === -1) {
+    // Enter a decimal only if the display isn't full and
+    // doesn't already contain a decimal.
+    if (displayIsFull() || display.value.search(/\./) > -1) {
+        // Do nothing
+    } else {
         display.value += '.';
     }
 }
@@ -129,6 +128,7 @@ function displayIsFull() {
 }
 
 function enterOperator(key) {
+    
 
 }
 
