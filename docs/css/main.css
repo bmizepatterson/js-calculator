@@ -26,6 +26,7 @@ body {
 
 .key:active {
   transform: translateZ(-5px);
+  background-color: darkgray;
 }
 
 .key:focus {

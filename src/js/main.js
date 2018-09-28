@@ -5,31 +5,19 @@
 let display    = null;
 
 // The first value of the current calculation
-let first_num  = null;
+let operand1  = null;
 
 // The second value of the current calculation
-let second_num = null;
+let operand2 = null;
 
 // The operation currently being performed
 let operator   = null;
 
-// A history of every key pressed
+// A history of every key pressed (resets when clear is pressed)
 let keyStack   = [];
 
 // The maximum number of digits (inc. decimal point) that the display can hold
 let maxDigits  = 9;
-
-// Calculation state describes the state of the calculation
-// currently being performed.
-const READY_FIRST  = 1,
-      READY_SECOND = 2,
-      SOLVED       = 3,
-      ERROR        = 4;
-let calc_state     = READY_FIRST;
-
-// const READY_FOR_ENTRY   = 1;
-// const ENTRY_IN_PROGRESS = 2;
-// let display_state       = READY_FOR_ENTRY;
 
 document.onreadystatechange = function() {
     if (document.readyState == 'interactive') {
@@ -50,43 +38,40 @@ function init() {
 function input(event) {
     let key = event.target.innerHTML;
 
+    if (key == '&nbsp;') {
+        // This is an empty button; ignore it.
+        return;
+    }
+
     // Route to the function appropriate for this key
-    if (isNumeric(key))       enterNumber(key);
-    else if (isOperator(key)) enterOperator(key);
-    else if (isEquals(key))   equals();
-    else if (isClear(key))    clear();
-    else if (isDecimal(key))  enterDecimal();
+    if (isNumeric(key)) {
+        enterNumber(key);
+
+    } else if (isOperator(key)) {
+        // Same behavior for operator buttons and equals button
+        enterOperator(key);
+
+    } else if (isEquals(key)) {
+        enterEquals(key);
+
+    } else if (isClear(key)) {
+        clearDisplay();
+
+    } else if (isDecimal(key)) {
+        enterDecimal();
+
+    }
 
     // Add this key to the history
     keyStack.push(key);
 }
 
-function isNumeric(key) {
-    return (0 <= key && key <= 9);
-}
-
-function isOperator(key) {
-    return (key == '+' || key == '-' || key == 'x' || key == '/');
-}
-
-function isEquals(key) {
-    return (key == '=');
-}
-
-function isClear(key) {
-    return (key == 'C');
-}
-
-function isDecimal(key) {
-    return (key == '.');
-}
-
-function clear() {
+function clearDisplay() {
     // Reset display and global variables
     display.value = '0';
-    first_num = null;
+    operand1 = null;
     operator = null;
-    second_num = null;
+    operand2 = null;
     keyStack = [];
 }
 
@@ -115,88 +100,165 @@ function enterNumber(key) {
     }
 }
 
+function enterOperator(key) {
+
+    // Repeated presses of an operator should update the
+    // operator, but do nothing else.
+    if (isOperator(getLastKey())) {
+        operator = key;
+        return;
+    }
+
+    // If we have enough information to perform a calculation, then perform it.
+    // NOTE: The operands are saved as strings, so even "0" evaluates to true.
+    if (operand1 && operator) {
+        operand2 = display.value;
+        // Save the results of the calculation in operand1 so additional
+        // calculations can be made, if desired. Also, update the display.
+        display.value = operand1 = calculate();
+        operand2 = null;
+
+    } else {
+        operand1 = display.value;
+    }
+
+    operator = key;
+}
+
+function enterEquals(key) {
+    // If we have enough information to make a calculation, then do so.
+    if (operand1 && operator) {
+        operand2 = display.value;
+        display.value = calculate();
+        // Move operand2 over to operand1 so we can continue to make
+        // calculations on this value if the equals is pressed multiple
+        // times in succession.
+        operand1 = operand2;
+    }
+}
+
+function calculate() {
+    // Performs operator on operand1 and operand2
+
+    // First check that we have all the information we need. If not, return.
+    let fail = false;
+    if (operand1 == null) {
+        console.log('Cannot perform calculation: operand1 is null.');
+        fail = true;
+    }
+    if (operand2 == null) {
+        console.log('Cannot perform calculation: operand2 is null.');
+        fail = true;
+    }
+    if (operator == null) {
+        console.log('Cannot perform calculation: operator is null.');
+        fail = true;
+    }
+    if (fail) return;
+
+    // Perform the operator on operand1 and operand2
+    let total = null;
+    if (operator === '+') {
+        total = Number(operand1) + Number(operand2);
+
+    } else if (operator === '-') {
+        total = Number(operand1) - Number(operand2);
+
+    } else if (operator === 'x') {
+        total = Number(operand1) * Number(operand2);
+
+    } else if (operator === '/' && operand2) {
+        // Watch out for division by zero.
+        total = Number(operand1) / Number(operand2);
+
+    } else {
+        console.log('Operator not recognized.');
+        // leave total = null
+    }
+
+    // Make sure to return the total as a string.
+    return total.toString();
+}
+
+
+
+/**
+ * UTILITY FUNCTIONS
+ * These functions encapsulate pieces of logic so that the main functions
+ * will be easier to read.
+ **/
+function isNumeric(key) {
+    return (0 <= key && key <= 9);
+}
+
+function isOperator(key) {
+    return (key == '+' || key == '-' || key == 'x' || key == '/');
+}
+
+function isEquals(key) {
+    return (key == '=');
+}
+
+function isClear(key) {
+    return (key == 'C');
+}
+
+function isDecimal(key) {
+    return (key == '.');
+}
+
 function readyForInput() {
     // Is the display ready for a new number?
     // The display shows a single 0 upon initial load and after
     // clear is pressed. If the user last clicked an operator
-    // key, then they're ready to enter a new number.
-    return (display.value == '0' || isOperator(keyStack[-1]));
+    // key or the equals key, then they're ready to enter a new number.
+    return (display.value == '0' || isOperator(getLastKey()) || isEquals(getLastKey()));
+}
+
+function getLastKey() {
+    // Returns the last button pressed,
+    // which is the last element of the keyStack array
+    return keyStack[keyStack.length - 1];
+}
+
+function getLastOperator() {
+    // Search back in the keyStack and find the last operator entered.
+    // We must search in reverse--from the end of the array to the beginning.
+    for (let i = keyStack.length - 1; i >= 0; i--) {
+        if (isOperator(keyStack[i])) return keyStack[i];
+    }
+    // No operator found. That happens sometimes. Explicitly return null
+    // so we know that no error occurred.
+    return null;
 }
 
 function displayIsFull() {
     return (display.value.length >= maxDigits);
 }
 
-function enterOperator(key) {
-    
-
-}
-
-function equals() {
-
-}
 
 
 
 
-function operator(current_sign) {
-    console.log('BEGINNING OF OPERATOR()');
-    debug();
 
-    if (sign != null) {
-      sign = current_sign;
-      document.getElementById('/').style.backgroundColor = '#5FB9FF';
-      document.getElementById('x').style.backgroundColor = '#5FB9FF';
-      document.getElementById('-').style.backgroundColor = '#5FB9FF';
-      document.getElementById('+').style.backgroundColor = '#5FB9FF';
-      document.getElementById(sign).style.backgroundColor = '#ccc';
-      return;
-    }
 
-    if (calc_state == ERROR) {
 
-        clear_display();
-        return;
 
-    }
 
-    if (calc_state == READY_FIRST) {
 
-        first_num = parseFloat(display.innerHTML);
-
-    } else if (calc_state == READY_SECOND) { // && second_num != null) {
-
-        calculate();
-
-    }
-
-    calc_state = READY_SECOND;
-    sign = current_sign;
-
-    display_state = READY_FOR_ENTRY;
-    document.getElementById('/').style.backgroundColor = '#5FB9FF';
-    document.getElementById('x').style.backgroundColor = '#5FB9FF';
-    document.getElementById('-').style.backgroundColor = '#5FB9FF';
-    document.getElementById('+').style.backgroundColor = '#5FB9FF';
-    document.getElementById(sign).style.backgroundColor = '#ccc';
-
-  console.log('END OF OPERATOR()');
-  debug();
-}
-
-function calculate() {
+function old_calculate() {
     if (calc_state == ERROR) {
         clear_display();
         return;
     }
-  second_num = parseFloat(display.innerHTML);
+  operand2 = parseFloat(display.innerHTML);
   console.log('BEGINNING OF CALCULATE()');
   debug();
 
 
   let solution;
-  let temp_first = first_num.toString();
-  let temp_second = second_num.toString();
+  let temp_first = operand1.toString();
+  let temp_second = operand2.toString();
 
   let first_dec_places = 0;
   let second_dec_places = 0;
@@ -214,14 +276,14 @@ function calculate() {
     dec_places = second_dec_places;
   }
 
-  temp_first = first_num * Math.pow(10, dec_places);
-  temp_second = second_num * Math.pow(10, dec_places);
+  temp_first = operand1 * Math.pow(10, dec_places);
+  temp_second = operand2 * Math.pow(10, dec_places);
   console.log('temp_first', temp_first);
   console.log('temp_second', temp_second);
 
 
   if (sign === '/') {
-    if (second_num === 0) {
+    if (operand2 === 0) {
       throw_error();
       return;
     }
@@ -245,7 +307,7 @@ function calculate() {
     let integer = temp_str;
     if (temp_str.search(/\./) > -1) {
       integer = temp_str.substring(0, temp_str.search(/\./));
-    } 
+    }
     console.log('integer', integer);
     if (integer.length > 9) {
       // Can't fit this number on our display; display ERROR.
@@ -274,7 +336,7 @@ function calculate() {
     }
     solution = "" + integer + '.' + total_decimals;
   }
-  
+
   solution = parseFloat(solution);
 
 
@@ -283,8 +345,8 @@ function calculate() {
   display_state = READY_FOR_ENTRY;
   sign = null;
 
-  first_num = solution;
-  second_num = null;
+  operand1 = solution;
+  operand2 = null;
   console.log('END OF CALCULATE()');
   debug();
   console.log('solution', solution, typeof solution);
@@ -298,29 +360,3 @@ function calculate() {
 }
 
 
-function highlight(id) {
-    document.getElementById(id).style.backgroundColor = '#CCC';
-}
-
-function unhighlight(id, color = '#FFF') {
-    document.getElementById(id).style.backgroundColor = color;
-}
-
-function debug() {
-    console.log('   first_num', first_num, typeof first_num);
-    console.log('   second_num', second_num, typeof second_num);
-    console.log('   sign', sign, typeof sign);
-    console.log('   calc_state', calc_state);
-    console.log('   display_state', display_state);
-}
-
-function throw_error() {
-    display.innerHTML = 'ERROR';
-    first_num = second_num = sign = null;
-    calc_state = ERROR;
-    display_state = READY_FOR_ENTRY;
-    document.getElementById('/').style.backgroundColor = '#5FB9FF';
-    document.getElementById('x').style.backgroundColor = '#5FB9FF';
-    document.getElementById('-').style.backgroundColor = '#5FB9FF';
-    document.getElementById('+').style.backgroundColor = '#5FB9FF';
-}
