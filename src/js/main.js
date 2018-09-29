@@ -2,22 +2,22 @@
  * GLOBALS
  */
 // The "display" of the calculator -- an HTML input element
-let display    = null;
+let display       = null;
 
 // The first value of the current calculation
-let operand1  = null;
+let operand1      = null;
 
 // The second value of the current calculation
-let operand2 = null;
+let operand2      = null;
 
 // The operation currently being performed
-let operator   = null;
+let operator      = null;
 
 // A history of every key pressed (resets when clear is pressed)
-let keyStack   = [];
+let keyStack      = [];
 
 // The maximum number of digits (inc. decimal point) that the display can hold
-let maxDigits  = 9;
+let maxDigits     = 9;
 
 document.onreadystatechange = function() {
     if (document.readyState == 'interactive') {
@@ -66,7 +66,7 @@ function clearDisplay() {
 function enterDecimal(key) {
     // Enter a decimal only if the display isn't full and
     // doesn't already contain a decimal.
-    if (displayIsFull()) return;
+    if (displayIsFull() && !isOperator(getLastKey())) return;
 
     if (readyForInput()) {
         // Prepend a 0 if we are starting to enter a new number
@@ -80,7 +80,7 @@ function enterDecimal(key) {
 
 function enterNumber(key) {
     // If the display is full, then don't add any more digits
-    if (displayIsFull()) return;
+    if (displayIsFull() && !isOperator(getLastKey())) return;
 
     if (readyForInput()) {
         // If the display is ready for a new number, then this
@@ -94,7 +94,6 @@ function enterNumber(key) {
 }
 
 function enterOperator(key) {
-
     // Repeated presses of an operator should update the
     // operator, but do nothing else.
     if (isOperator(getLastKey())) {
@@ -102,66 +101,87 @@ function enterOperator(key) {
         return;
     }
 
-    // If we have enough information to perform a calculation, then perform it.
     // NOTE: The operands are saved as strings, so even "0" evaluates to true.
-    if (operand1 && operator) {
+    if (operand2) {
+        // Pressing equals leaves operand2 set, so if operand2 is set at this
+        // point, the user is starting a new calculation on an old result.
+        // We need to move operand2 to operand1.
+        operand1 = display.value;
+        operand2 = null;
+
+    } else if (operand1 && operator) {
+        // We have enough information to perform a calculation, so perform it.
         operand2 = display.value;
+        // printGlobals();
         // Save the results of the calculation in operand1 so additional
         // calculations can be made, if desired. Also, update the display.
         display.value = operand1 = calculate();
         operand2 = null;
 
     } else {
+        // If neither operand1, operand2, nor operator are set, then we are at
+        // the very beginning of a new calculation.
         operand1 = display.value;
     }
 
     operator = key;
+    printGlobals();
 }
 
 function enterEquals(key) {
-    // If we have enough information to make a calculation, then do so.
+    // If we have enough information, then perform the calculation.
     if (operand1 && operator) {
-        operand2 = display.value;
-        display.value = calculate();
-        // Move operand2 over to operand1 so we can continue to make
-        // calculations on this value if the equals is pressed multiple
-        // times in succession.
-        operand1 = operand2;
+        // If operand2 is set from a previous calculation, then reuse it.
+        // Otherwise use the number on the display as the second operand.
+        if (operand2 == null) {
+            operand2 = display.value;
+        }
+        display.value = operand1 = calculate();
+
+        // Leave operand2 set so we can use it again if the equals button is
+        // clicked multiple times in succession.
     }
+    printGlobals();
 }
 
 function calculate() {
     // Performs operator on operand1 and operand2
 
-    // Are we ready to calculate? If not, then return.
     if (!readyForCalculation()) return;
 
     // Prepare the operands for the calculation
-    let num1 = integerize(operand1);
-    let num2 = integerize(operand2);
+    let integersForCalculation = integerizeOperands();
+    let num1 = integersForCalculation.int1;
+    let num2 = integersForCalculation.int2;
+    let power = integersForCalculation.decimalPlaces;
 
     // Perform the operator on the operands
     let total = null;
     if (operator === '+') {
-        total = num1.integer + num2.integer;
+        total = num1 + num2;
 
     } else if (operator === '-') {
-        total = num1.integer - num2.integer;
+        total = num1 - num2;
 
     } else if (operator === 'x') {
-        total = num1.integer * num2.integer;
+        total = num1 * num2;
 
-    } else if (operator === '/' && num2.integer) {
+    } else if (operator === '/' && num2) {
         // Watch out for division by zero.
-        total = num1.integer / num2.integer;
+        total = num1 / num2;
 
     } else {
         console.log('Operator not recognized.');
         // leave total = null
     }
 
+    // TODO: Format total should convert to scientific notation if answer is
+    // too long for the display.
+
+    // TODO: Format total should round off decimal places if necessary.
+
     // Format total and return
-    return formatTotal(total, num1, num2);
+    return formatTotal(total, power);
 }
 
 
@@ -231,37 +251,48 @@ function findDecimalPoint(string) {
 /**
  *  Floating point operations are tricky. Let's avoid them by turning each
  *  operand into an integer before performing any operations. We can do this
- *  by multiplying by an appropriate power of 10, depending on how many
- *  digits come after the decimal point.
+ *  by multiplying both operands by an appropriate power of 10.
  *
  *  We just have to remember to move that decimal point back to the right spot
  *  once we have the total.
+ *
  *  @param operand string to convert to integer, scaling up by a power of 10 if
  *      necessary
  *  @return object with two properties:
  *      - integer, the converted integer
  *      - decimalPlaces, the number of decimal places we had to scale
  */
-function integerize(operand) {
+function integerizeOperands() {
     let result = {
-        integer: parseInt(operand),
+        int1: parseInt(operand1),
+        int2: parseInt(operand2),
         decimalPlaces: 0
     };
-    if (containsDecimal(operand)) {
-        // The number of decimal places is equal to the length of the substring
-        // starting at the location of the decimal point + 1
-        result.decimalPlaces = operand.substring(findDecimalPoint(operand) + 1).length;
-        result.integer = parseInt(operand * Math.pow(10, result.decimalPlaces));
+    // Figure out which operand contains the greater number of digits after the
+    // decimal point. Then multiply each operand by 10 raised to that number.
+    let decPlaces1 = 0, decPlaces2 = 0;
+    if (containsDecimal(operand1)) {
+        decPlaces1 = operand1.substring(findDecimalPoint(operand1) + 1).length;
+    }
+    if (containsDecimal(operand2)) {
+        decPlaces2 = operand2.substring(findDecimalPoint(operand2) + 1).length;
+    }
+    // If either operand has digits after the decimal, multiply BOTH operands
+    // by 10 raised to that number.
+    // If both operands have digits after the decimal, muliply BOTH operands
+    // by 10 raised to the GREATER number.
+    if (decPlaces1 || decPlaces2) {
+        result.decimalPlaces = Math.max(decPlaces1, decPlaces2);
+        result.int1 = parseInt(operand1 * Math.pow(10, result.decimalPlaces));
+        result.int2 = parseInt(operand2 * Math.pow(10, result.decimalPlaces));
     }
     return result;
 }
 
-function formatTotal(total, num1, num2) {
-    // Scale down total if either operands had to be scaled up.
-    // Total should be scaled down by the greater number of decimal places
-    // present in the original operands.
-    if (num1.decimalPlaces || num2.decimalPlaces) {
-        total /= Math.pow(10, Math.max(num1.decimalPlaces, num2.decimalPlaces));
+function formatTotal(total, power) {
+    // Scale down total if the operands had to be scaled up. Return as a string.
+    if (power) {
+        total /= Math.pow(10, power);
     }
     return total.toString();
 }
@@ -283,4 +314,11 @@ function readyForCalculation() {
         ready = false;
     }
     return ready;
+}
+
+function printGlobals() {
+    console.log('===GLOBALS===');
+    console.log('\toperand1', operand1);
+    console.log('\toperator', operator);
+    console.log('\toperand2', operand2);
 }
