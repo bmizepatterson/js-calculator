@@ -135,25 +135,8 @@ function enterEquals(key) {
 
 function calculate() {
   // Performs operator on operand1 and operand2
-  // First check that we have all the information we need. If not, return.
-  var fail = false;
-
-  if (operand1 == null) {
-    console.log('Cannot perform calculation: operand1 is null.');
-    fail = true;
-  }
-
-  if (operand2 == null) {
-    console.log('Cannot perform calculation: operand2 is null.');
-    fail = true;
-  }
-
-  if (operator == null) {
-    console.log('Cannot perform calculation: operator is null.');
-    fail = true;
-  }
-
-  if (fail) return; // Prepare the operands for processing
+  // Are we ready to calculate? If not, then return.
+  if (!readyForCalculation()) return; // Prepare the operands for the calculation
 
   var num1 = integerize(operand1);
   var num2 = integerize(operand2); // Perform the operator on the operands
@@ -281,4 +264,27 @@ function formatTotal(total, num1, num2) {
   }
 
   return total.toString();
+}
+
+function readyForCalculation() {
+  // Checks that operand1, operand2, and operator are set.
+  // If any are not set, it prints a message to the console and returns false.
+  var ready = true;
+
+  if (operand1 == null) {
+    console.log('Cannot perform calculation: operand1 is null.');
+    ready = false;
+  }
+
+  if (operand2 == null) {
+    console.log('Cannot perform calculation: operand2 is null.');
+    ready = false;
+  }
+
+  if (operator == null) {
+    console.log('Cannot perform calculation: operator is null.');
+    ready = false;
+  }
+
+  return ready;
 }

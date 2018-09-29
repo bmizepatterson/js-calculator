@@ -133,23 +133,10 @@ function enterEquals(key) {
 function calculate() {
     // Performs operator on operand1 and operand2
 
-    // First check that we have all the information we need. If not, return.
-    let fail = false;
-    if (operand1 == null) {
-        console.log('Cannot perform calculation: operand1 is null.');
-        fail = true;
-    }
-    if (operand2 == null) {
-        console.log('Cannot perform calculation: operand2 is null.');
-        fail = true;
-    }
-    if (operator == null) {
-        console.log('Cannot perform calculation: operator is null.');
-        fail = true;
-    }
-    if (fail) return;
+    // Are we ready to calculate? If not, then return.
+    if (!readyForCalculation()) return;
 
-    // Prepare the operands for processing
+    // Prepare the operands for the calculation
     let num1 = integerize(operand1);
     let num2 = integerize(operand2);
 
@@ -277,4 +264,23 @@ function formatTotal(total, num1, num2) {
         total /= Math.pow(10, Math.max(num1.decimalPlaces, num2.decimalPlaces));
     }
     return total.toString();
+}
+
+function readyForCalculation() {
+    // Checks that operand1, operand2, and operator are set.
+    // If any are not set, it prints a message to the console and returns false.
+    let ready = true;
+    if (operand1 == null) {
+        console.log('Cannot perform calculation: operand1 is null.');
+        ready = false;
+    }
+    if (operand2 == null) {
+        console.log('Cannot perform calculation: operand2 is null.');
+        ready = false;
+    }
+    if (operator == null) {
+        console.log('Cannot perform calculation: operator is null.');
+        ready = false;
+    }
+    return ready;
 }
