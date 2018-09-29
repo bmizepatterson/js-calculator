@@ -53,27 +53,11 @@ function init() {
 }
 
 function input(event) {
-  var key = event.target.innerHTML;
+  var key = event.target.innerHTML; // Ignore empty buttons
 
-  if (key == '&nbsp;') {
-    // This is an empty button; ignore it.
-    return;
-  } // Route to the function appropriate for this key
+  if (key == '&nbsp;') return; // Route to the function appropriate for this key
 
-
-  if (isNumeric(key)) {
-    enterNumber(key);
-  } else if (isOperator(key)) {
-    // Same behavior for operator buttons and equals button
-    enterOperator(key);
-  } else if (isEquals(key)) {
-    enterEquals(key);
-  } else if (isClear(key)) {
-    clearDisplay();
-  } else if (isDecimal(key)) {
-    enterDecimal();
-  } // Add this key to the history
-
+  if (isNumeric(key)) enterNumber(key);else if (isOperator(key)) enterOperator(key);else if (isEquals(key)) enterEquals(key);else if (isClear(key)) clearDisplay();else if (isDecimal(key)) enterDecimal(key); // Add this key to the history
 
   keyStack.push(key);
 }
@@ -81,18 +65,21 @@ function input(event) {
 function clearDisplay() {
   // Reset display and global variables
   display.value = '0';
-  operand1 = null;
-  operator = null;
-  operand2 = null;
+  operand1 = operand2 = operator = null;
   keyStack = [];
 }
 
-function enterDecimal() {
+function enterDecimal(key) {
   // Enter a decimal only if the display isn't full and
   // doesn't already contain a decimal.
-  if (displayIsFull() || display.value.search(/\./) > -1) {// Do nothing
-  } else {
-    display.value += '.';
+  if (displayIsFull()) return;
+
+  if (readyForInput()) {
+    // Prepend a 0 if we are starting to enter a new number
+    display.value = '0' + key;
+  } else if (!containsDecimal(display.value)) {
+    // Append a decimal if there isn't one already
+    display.value += key;
   }
 }
 
@@ -166,30 +153,33 @@ function calculate() {
     fail = true;
   }
 
-  if (fail) return; // Perform the operator on operand1 and operand2
+  if (fail) return; // Prepare the operands for processing
+
+  var num1 = integerize(operand1);
+  var num2 = integerize(operand2); // Perform the operator on the operands
 
   var total = null;
 
   if (operator === '+') {
-    total = Number(operand1) + Number(operand2);
+    total = num1.integer + num2.integer;
   } else if (operator === '-') {
-    total = Number(operand1) - Number(operand2);
+    total = num1.integer - num2.integer;
   } else if (operator === 'x') {
-    total = Number(operand1) * Number(operand2);
-  } else if (operator === '/' && operand2) {
+    total = num1.integer * num2.integer;
+  } else if (operator === '/' && num2.integer) {
     // Watch out for division by zero.
-    total = Number(operand1) / Number(operand2);
+    total = num1.integer / num2.integer;
   } else {
     console.log('Operator not recognized.'); // leave total = null
-  } // Make sure to return the total as a string.
+  } // Format total and return
 
 
-  return total.toString();
+  return formatTotal(total, num1, num2);
 }
 /**
  * UTILITY FUNCTIONS
  * These functions encapsulate pieces of logic so that the main functions
- * will be easier to read.
+ * will be easier to interpret.
  **/
 
 
@@ -243,117 +233,52 @@ function displayIsFull() {
   return display.value.length >= maxDigits;
 }
 
-function old_calculate() {
-  if (calc_state == ERROR) {
-    clear_display();
-    return;
+function containsDecimal(string) {
+  return findDecimalPoint(string) > -1;
+}
+
+function findDecimalPoint(string) {
+  return string.search(/\./);
+}
+/**
+ *  Floating point operations are tricky. Let's avoid them by turning each
+ *  operand into an integer before performing any operations. We can do this
+ *  by multiplying by an appropriate power of 10, depending on how many
+ *  digits come after the decimal point.
+ *
+ *  We just have to remember to move that decimal point back to the right spot
+ *  once we have the total.
+ *  @param operand string to convert to integer, scaling up by a power of 10 if
+ *      necessary
+ *  @return object with two properties:
+ *      - integer, the converted integer
+ *      - decimalPlaces, the number of decimal places we had to scale
+ */
+
+
+function integerize(operand) {
+  var result = {
+    integer: parseInt(operand),
+    decimalPlaces: 0
+  };
+
+  if (containsDecimal(operand)) {
+    // The number of decimal places is equal to the length of the substring
+    // starting at the location of the decimal point + 1
+    result.decimalPlaces = operand.substring(findDecimalPoint(operand) + 1).length;
+    result.integer = parseInt(operand * Math.pow(10, result.decimalPlaces));
   }
 
-  operand2 = parseFloat(display.innerHTML);
-  console.log('BEGINNING OF CALCULATE()');
-  debug();
-  var solution;
-  var temp_first = operand1.toString();
-  var temp_second = operand2.toString();
-  var first_dec_places = 0;
-  var second_dec_places = 0;
+  return result;
+}
 
-  if (temp_first.search(/\./) > -1) {
-    first_dec_places = temp_first.substring(temp_first.search(/\./) + 1).length;
+function formatTotal(total, num1, num2) {
+  // Scale down total if either operands had to be scaled up.
+  // Total should be scaled down by the greater number of decimal places
+  // present in the original operands.
+  if (num1.decimalPlaces || num2.decimalPlaces) {
+    total /= Math.pow(10, Math.max(num1.decimalPlaces, num2.decimalPlaces));
   }
 
-  if (temp_second.search(/\./) > -1) {
-    second_dec_places = temp_second.substring(temp_second.search(/\./) + 1).length;
-  }
-
-  var dec_places = 0;
-
-  if (first_dec_places > second_dec_places) {
-    dec_places = first_dec_places;
-  } else {
-    dec_places = second_dec_places;
-  }
-
-  temp_first = operand1 * Math.pow(10, dec_places);
-  temp_second = operand2 * Math.pow(10, dec_places);
-  console.log('temp_first', temp_first);
-  console.log('temp_second', temp_second);
-
-  if (sign === '/') {
-    if (operand2 === 0) {
-      throw_error();
-      return;
-    }
-
-    solution = temp_first / temp_second;
-  } else if (sign === 'x') {
-    solution = temp_first * temp_second;
-  } else if (sign === '-') {
-    solution = temp_first - temp_second;
-  } else if (sign === '+') {
-    solution = temp_first + temp_second;
-  }
-
-  solution = solution / Math.pow(10, dec_places * 2); // If the number of digits in front of the decimal is too many, throw error
-  // Grab the "integer" part of the solution
-
-  var temp_str = solution.toString();
-
-  if (temp_str.length > 9) {
-    console.log('solution', solution);
-    var integer = temp_str;
-
-    if (temp_str.search(/\./) > -1) {
-      integer = temp_str.substring(0, temp_str.search(/\./));
-    }
-
-    console.log('integer', integer);
-
-    if (integer.length > 9) {
-      // Can't fit this number on our display; display ERROR.
-      throw_error();
-      return;
-    }
-
-    var total_decimals = temp_str.substring(temp_str.search(/\./) + 1); // Limit the total digits in the display to 9
-
-    var avail_digits = 9;
-    var exp_not = ''; // Detect exponential notation
-
-    if (total_decimals.search("e") >= 0) {
-      // Find the length of the e+XX part
-      exp_not = total_decimals.substring(total_decimals.search("e"));
-      total_decimals = total_decimals.substring(0, total_decimals.search("e"));
-      console.log('total_decimals, step -1', total_decimals);
-      avail_digits -= exp_not.length;
-    } // If found, round digits but keep notation
-
-
-    console.log('total_decimals, step 1', total_decimals);
-    var num_decimals = avail_digits - integer.length;
-
-    if (total_decimals.length > num_decimals) {
-      total_decimals = total_decimals / Math.pow(10, total_decimals.length - num_decimals);
-      total_decimals = Math.round(total_decimals);
-      total_decimals = "" + total_decimals + exp_not;
-    }
-
-    solution = "" + integer + '.' + total_decimals;
-  }
-
-  solution = parseFloat(solution);
-  display.innerHTML = solution;
-  calc_state = SOLVED;
-  display_state = READY_FOR_ENTRY;
-  sign = null;
-  operand1 = solution;
-  operand2 = null;
-  console.log('END OF CALCULATE()');
-  debug();
-  console.log('solution', solution, typeof solution);
-  document.getElementById('/').style.backgroundColor = '#5FB9FF';
-  document.getElementById('x').style.backgroundColor = '#5FB9FF';
-  document.getElementById('-').style.backgroundColor = '#5FB9FF';
-  document.getElementById('+').style.backgroundColor = '#5FB9FF';
-  return solution;
+  return total.toString();
 }
