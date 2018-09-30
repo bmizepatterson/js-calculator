@@ -290,10 +290,54 @@ function integerizeOperands() {
 }
 
 function formatTotal(total, power) {
-  // Scale down total if the operands had to be scaled up. Return as a string.
-  if (power) {
-    total /= Math.pow(10, power);
-  }
+  // Scale down total if the operands had to be scaled up.
+  total /= Math.pow(10, power);
+  var totalParts = getNumParts(total);
+  var powerExp = '';
+  console.log('total1', total);
+
+  if (totalParts.str.length > maxDigits) {
+    // We can't just display the total as-is.
+    // We may need to convert to scientific notation, or
+    // round the digits after the decimal, or both.
+    var wholeNumDigits = totalParts.wholeNum.toString().length;
+
+    if (wholeNumDigits > maxDigits) {
+      // Convert to scientific notation
+      var exponent = wholeNumDigits - 1;
+      powerExp = "e" + exponent;
+      total /= Math.pow(10, exponent);
+      console.log('total2', total); // Round the decimal so that there's room for the exponent
+
+      totalParts = getNumParts(total);
+      console.log('decimalDigits', totalParts.decimalDigits);
+      var decimalLength = maxDigits - totalParts.wholeNum.toString().length - powerExp.length;
+      console.log('decimalLength', decimalLength);
+      totalParts.decimalDigits = Math.round(totalParts.decimalDigits / Math.pow(10, totalParts.decimalDigits.toString().length - decimalLength)); // If this rounding should result in incrementing the whole number part, then do so.
+
+      if (totalParts.decimalDigits.toString().length > decimalLength) {
+        totalParts.wholeNum++;
+        totalParts.decimalDigits = totalParts.decimalDigits.toString().substring(1);
+      }
+
+      console.log('rounded decimal digits', totalParts.decimalDigits); // Excise trailing zeros
+
+      while (totalParts.decimalDigits.toString().substring(totalParts.decimalDigits.toString().length - 1) === '0') {
+        totalParts.decimalDigits = totalParts.decimalDigits.toString().substring(0, totalParts.decimalDigits.toString().length - 1);
+        console.log('excise trailing zeros:', totalParts.decimalDigits);
+      } // Paste the parts back together
+
+
+      if (totalParts.decimalDigits) {
+        total = "" + totalParts.wholeNum + '.' + totalParts.decimalDigits + powerExp;
+      } else {
+        total = "" + totalParts.wholeNum + powerExp;
+      }
+
+      console.log('total3', total);
+    }
+  } // Return as a string.
+
 
   return total.toString();
 }
@@ -319,6 +363,31 @@ function readyForCalculation() {
   }
 
   return ready;
+}
+
+function getNumParts(n) {
+  // Splits a number on the decimal point (if present) and returns the parts
+  // as an object
+  var numParts = {
+    original: n,
+    str: n.toString(),
+    wholeNum: n,
+    decimalDigits: null
+  };
+
+  if (containsDecimal(numParts.str)) {
+    var parts_arr = numParts.str.split(/\./);
+
+    if (parts_arr.length > 2) {
+      console.log('Improper number passed to getNumParts()');
+      return;
+    }
+
+    numParts.wholeNum = parts_arr[0];
+    numParts.decimalDigits = parts_arr[1];
+  }
+
+  return numParts;
 }
 
 function printGlobals() {
