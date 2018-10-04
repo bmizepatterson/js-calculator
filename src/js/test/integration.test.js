@@ -1,4 +1,4 @@
-describe("Button event handler", function() {
+describe("Clicking", function() {
     let fullDisplay = Array(maxDigits).fill(1).join("");
 
     beforeEach(function() {
@@ -21,25 +21,23 @@ describe("Button event handler", function() {
         return { target: { innerHTML: string } };
     }
 
-    it("does nothing when an empty button is clicked.", function() {
+    it("on an empty button does nothing.", function() {
 
         display.value = '1';
         input(getClickEvent('&nbsp;'));
         expect(display.value).to.equal('1');
     });
 
-    describe("on the digit buttons", function() {
+    describe("on a digit button", function() {
 
-        describe("does NOTHING when a digit is clicked", function() {
 
-            it("if the display is full.", function() {
-                display.value = fullDisplay;
-                input(getClickEvent('1'));
-                expect(display.value).to.equal(fullDisplay);
-            });
+        it("does nothing if the display is full.", function() {
+            display.value = fullDisplay;
+            input(getClickEvent('1'));
+            expect(display.value).to.equal(fullDisplay);
         });
 
-        describe("REPLACES the display when a digit is clicked", function() {
+        describe("replaces the display", function() {
 
             it("at the beginning of input.", function() {
 
@@ -57,7 +55,7 @@ describe("Button event handler", function() {
             });
         });
 
-        describe("APPENDS to the display when a digit is clicked", function() {
+        describe("appends to the display", function() {
 
             it("in the middle of input.", function() {
 
@@ -70,9 +68,9 @@ describe("Button event handler", function() {
 
     describe("on the decimal button", function() {
 
-        describe("does NOT append a decimal", function() {
+        describe("does not append a decimal", function() {
 
-            it("if it already has one.", function() {
+            it("if there is already a decimal in the display.", function() {
                 display.value = '12.3';
                 input(getClickEvent('.'));
                 expect(display.value).to.equal('12.3');
@@ -85,7 +83,7 @@ describe("Button event handler", function() {
             });
         });
 
-        describe("appends a decimal to the dislay when the decimal button is clicked", function() {
+        describe("appends a decimal to the dislay", function() {
 
             it("at the beginning of input.", function() {
                 display.value = '0';
@@ -93,7 +91,7 @@ describe("Button event handler", function() {
                 expect(display.value).to.equal('0.');
             });
 
-            it("in the middle of input if the display doesn't already have one.", function() {
+            it("in the middle of input, if the display doesn't already have one.", function() {
                 display.value = '12';
                 input(getClickEvent('.'));
                 expect(display.value).to.equal('12.');
@@ -127,13 +125,13 @@ describe("Button event handler", function() {
 
     describe("on the clear button", function() {
 
-        it("clears the display when the clear button is clicked.", function() {
+        it("clears the display.", function() {
             display.value = '12.3';
             input(getClickEvent('C'));
             expect(display.value).to.equal('0');
         });
 
-        it("resets global variables when the clear button is clicked.", function() {
+        it("resets the global variables.", function() {
             operand1 = '1';
             operator = '+';
             operand2 = '2';
