@@ -164,4 +164,89 @@ describe("Utility function", function() {
             expect(isClear('C')).to.be.true;
         });
     });
+
+    describe("getLastKey works", function() {
+
+        beforeEach(function() {
+            keyStack = [];
+        });
+
+        afterEach(function() {
+            keyStack = [];
+        });
+
+        it("when no key has been clicked yet.", function() {
+            expect(getLastKey()).to.be.undefined;
+        });
+
+        it("when the last key was a digit.", function() {
+            keyStack = ['1', '+', '2'];
+            expect(getLastKey()).to.equal('2');
+        });
+
+        it("when the last key was an operator.", function() {
+            keyStack = ['1', '+'];
+            expect(getLastKey()).to.equal('+');
+        });
+
+        it("when the last key was equals.", function() {
+            keyStack = ['1', '+', '2', '='];
+            expect(getLastKey()).to.equal('=');
+        });
+
+        it("when the last key was an empty button.", function() {
+            keyStack = ['1', '+', '2', '&nbsp;'];
+            expect(getLastKey()).to.equal('2');
+        });
+
+        it("when the last key was the decimal.", function() {
+            keyStack = ['1', '+', '2', '.'];
+            expect(getLastKey()).to.equal('.');
+        });
+    });
+
+    describe("getLastOperator works", function() {
+        beforeEach(function() {
+            keyStack = [];
+        });
+
+        afterEach(function() {
+            keyStack = [];
+        });
+
+        it("when no key has been clicked yet.", function() {
+            expect(getLastOperator()).to.be.null;
+        });
+
+        it("when no operator has been clicked yet.", function() {
+            keyStack = ['1', '2', '3'];
+            expect(getLastOperator()).to.be.null;
+        });
+
+        it("when the last key was a digit.", function() {
+            keyStack = ['1', '+', '2'];
+            expect(getLastOperator()).to.equal('+');
+        });
+
+        it("when the last key was an operator.", function() {
+            keyStack = ['1', '+'];
+            expect(getLastOperator()).to.equal('+');
+        });
+
+        it("when the last key was equals.", function() {
+            keyStack = ['1', '+', '2', '='];
+            expect(getLastOperator()).to.equal('+');
+        });
+
+        it("when the last key was an empty button.", function() {
+            keyStack = ['1', '+', '2', '&nbsp;'];
+            expect(getLastOperator()).to.equal('+');
+        });
+
+        it("when the last key was the decimal.", function() {
+            keyStack = ['1', '+', '2', '.'];
+            expect(getLastOperator()).to.equal('+');
+        });
+
+    });
 });
