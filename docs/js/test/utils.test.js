@@ -177,4 +177,52 @@ describe("Utility function", function () {
       expect(getLastOperator()).to.equal('+');
     });
   });
+  describe("displayIsFull works", function () {
+    beforeEach(function () {
+      display = {
+        value: ''
+      };
+    });
+    afterEach(function () {
+      display = null;
+    });
+    it("when the display is just \"0\".", function () {
+      display.value = '0';
+      expect(displayIsFull()).to.be.false;
+    });
+    it("when the display contains some digits, but isn't full.", function () {
+      var string = '1';
+
+      for (var _string = '1'; _string.length < maxDigits; _string += '1') {
+        display.value = _string;
+        expect(displayIsFull()).to.be.false;
+      }
+    });
+    it("when the display is full.", function () {
+      display.value = Array(maxDigits).fill(1).join("");
+      expect(displayIsFull()).to.be.true;
+    });
+  });
+  describe("findDecimalPoint", function () {
+    it("returns -1 if there is no decimal.", function () {
+      expect(findDecimalPoint("123456789")).to.equal(-1);
+    });
+    it("returns an integer >= 0 if there is a decimal.", function () {
+      expect(findDecimalPoint("1.23456789")).to.equal(1);
+      expect(findDecimalPoint("0.12345678")).to.equal(1);
+      expect(findDecimalPoint("123.00014")).to.equal(3);
+      expect(findDecimalPoint("12345678.1")).to.equal(8);
+    });
+  });
+  describe("containsDecimal", function () {
+    it("returns true if there is a decimal.", function () {
+      expect(containsDecimal("1.23456789")).to.be.true;
+      expect(containsDecimal("0.12345678")).to.be.true;
+      expect(containsDecimal("123.00014")).to.be.true;
+      expect(containsDecimal("12345678.1")).to.be.true;
+    });
+    it("returns false if there is not a decimal.", function () {
+      expect(containsDecimal("123456789")).to.be.false;
+    });
+  });
 });
