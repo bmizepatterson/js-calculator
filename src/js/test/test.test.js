@@ -1,9 +1,5 @@
-describe('Testing', function() {
-    it('is fun', function() {
-        //
+describe('The universe', function() {
+    it('is working.', function() {
+        expect(true).to.be.true;
     });
-
-    it('no really', function() {
-
-    })
-})
+});

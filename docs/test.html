@@ -9,9 +9,14 @@
 
   <script src="https://unpkg.com/chai/chai.js"></script>
   <script src="https://unpkg.com/mocha@5.2.0/mocha.js"></script>
+  <script src="js/main.js"></script>
 
-  <script>mocha.setup('bdd')</script>
+  <script>
+    mocha.setup('bdd')
+    var expect = chai.expect;
+  </script>
   <script src="js/test/test.test.js"></script>
+  <script src="js/test/utils.test.js"></script>
   <script>
     // mocha.checkLeaks();
     mocha.run();
