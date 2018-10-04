@@ -306,4 +306,39 @@ describe("Utility function", function() {
         });
 
     });
+
+    describe("readyForInput", function() {
+
+        beforeEach(function() {
+            display = { value: '' };
+            keyStack = [];
+        });
+
+        afterEach(function() {
+            display = null;
+            keyStack = [];
+        });
+
+        it("returns true if display reads \"0.\"", function() {
+            display.value = "0";
+            expect(readyForInput()).to.be.true;
+        });
+
+        it("returns true if last key was an operator.", function() {
+            keyStack = ["+"];
+            expect(readyForInput()).to.be.true;
+        });
+
+        it("returns true if last key was the equals button.", function() {
+            keyStack = ["="];
+            expect(readyForInput()).to.be.true;
+        });
+
+        it("returns false if last key was a digit or decimal.", function() {
+            keyStack = ["."];
+            expect(readyForInput()).to.be.false;
+            keyStack = ["1"];
+            expect(readyForInput()).to.be.false;
+        })
+    });
 });
