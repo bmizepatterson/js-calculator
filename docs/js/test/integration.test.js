@@ -31,8 +31,13 @@ describe("Clicking", function () {
     display.value = '1';
     input(getClickEvent('&nbsp;'));
     expect(display.value).to.equal('1');
+    expect(keyStack).to.be.an('array').that.is.empty;
   });
   describe("on a digit button", function () {
+    it("adds it to the keyStack.", function () {
+      input(getClickEvent('1'));
+      expect(keyStack[0]).to.equal('1');
+    });
     it("does nothing if the display is full.", function () {
       display.value = fullDisplay;
       input(getClickEvent('1'));
@@ -60,6 +65,10 @@ describe("Clicking", function () {
     });
   });
   describe("on the decimal button", function () {
+    it("adds it to the keyStack.", function () {
+      input(getClickEvent('.'));
+      expect(keyStack[0]).to.equal('.');
+    });
     describe("does not append a decimal", function () {
       it("if there is already a decimal in the display.", function () {
         display.value = '12.3';
@@ -104,6 +113,10 @@ describe("Clicking", function () {
     });
   });
   describe("on the clear button", function () {
+    it("adds it to the keyStack.", function () {
+      input(getClickEvent('C'));
+      expect(keyStack[0]).to.equal('C');
+    });
     it("clears the display.", function () {
       display.value = '12.3';
       input(getClickEvent('C'));
