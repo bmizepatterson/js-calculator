@@ -128,7 +128,21 @@ describe("Button event handler", function() {
     describe("on the clear button", function() {
 
         it("clears the display when the clear button is clicked.", function() {
+            display.value = '12.3';
+            input(getClickEvent('C'));
+            expect(display.value).to.equal('0');
+        });
 
+        it("resets global variables when the clear button is clicked.", function() {
+            operand1 = '1';
+            operator = '+';
+            operand2 = '2';
+            keyStack = ['1', '+', '2'];
+            input(getClickEvent('C'));
+            expect(operand1).to.be.null;
+            expect(operator).to.be.null;
+            expect(operand2).to.be.null;
+            expect(keyStack).to.be.an('array').that.is.empty;
         });
     });
 });
